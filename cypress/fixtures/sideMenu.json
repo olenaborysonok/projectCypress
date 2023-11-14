@@ -1,0 +1,23 @@
+{
+  "endPointsSideMenu": [
+    "/newJob",
+    "/asynchPeople",
+    "/builds",
+    "/manage",
+    "my-views/view/all"
+  ],
+  "sideMenuName": [
+    "New Item",
+    "People",
+    "Build History",
+    "Manage Jenkins",
+    "My Views"
+  ],
+  "headerPage": [
+    "Enter an item name",
+    "People",
+    "Build History of Jenkins",
+    "Manage Jenkins",
+    "This folder is empty"
+  ]
+}

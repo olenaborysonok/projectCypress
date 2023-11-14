@@ -1,0 +1,10 @@
+{
+  "endPointsMenuName": [
+    "http://localhost:8080/manage/about/",
+    "jenkins.io/participate/",
+    "jenkins.io/"
+  ],
+  "footerMenuName": ["About Jenkins", "Get involved", "Website"],
+  "headerPage": ["Participate and Contribute", "Jenkins"],
+  "selectors": ["'h1.page-title span'", "'div.col-md-12 h1'"]
+}
