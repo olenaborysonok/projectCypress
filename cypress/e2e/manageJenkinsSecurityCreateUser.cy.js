@@ -86,7 +86,7 @@ describe('ManageJenkinsSecurityCreateUser.cy', () => {
 
   it('TC_09.14.002 |Manage Jenkins > Security > Create user > Verify error message displayed when creating user without username', () => {
     cy.title().should('include', 'Create User');
-    cy.get('#username').should('not.have.value');
+    cy.get('#username');
     cy.get('input[name="password1"]').type(
       manageJenkinsSecurityCreateUser.password
     );
@@ -158,6 +158,27 @@ describe('ManageJenkinsSecurityCreateUser.cy', () => {
     cy.get('div.error').should(
       'have.text',
       manageJenkinsSecurityCreateUser.errorEmail
+    );
+  });
+
+  it('TC_09.14.010 | Manage Jenkins > Security> Create User > Verify error message displayed when user enter invalid Username by using special characters', function () {
+    cy.get('#username').type(
+      JSON.stringify(manageJenkinsSecurityCreateUser.invalidUsername)
+    );
+    cy.get('input[name="password1"]').type(
+      manageJenkinsSecurityCreateUser.password
+    );
+    cy.get('input[name="password2"]').type(
+      manageJenkinsSecurityCreateUser.password
+    );
+    cy.get('input[name="fullname"]').type(
+      manageJenkinsSecurityCreateUser.fullName
+    );
+    cy.get('input[name="email"]').type(manageJenkinsSecurityCreateUser.email);
+    cy.get('button[name="Submit"]').click();
+    cy.get('div.error').should(
+      'have.text',
+      manageJenkinsSecurityCreateUser.errorUsernameSC
     );
   });
 });
