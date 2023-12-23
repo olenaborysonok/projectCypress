@@ -2,6 +2,7 @@
 
 describe('apiTestReqres', () => {
   const Base_URL = 'https://simple-grocery-store-api.glitch.me';
+  let singleProduct;
   let product;
   let productId;
   let actualCategory;
@@ -27,7 +28,7 @@ describe('apiTestReqres', () => {
     });
   });
 
-  it('Verify product has all category', () => {
+  it('Verify all category has product', () => {
     cy.api({
       method: 'GET',
       url: `${Base_URL}/products`,
@@ -38,6 +39,7 @@ describe('apiTestReqres', () => {
         .map((el) => el.category)
         .filter((value, index, self) => self.indexOf(value) === index);
 
+      console.log(category);
       console.log(actualCategory);
 
       expect(category).to.deep.equal(actualCategory);
@@ -45,7 +47,7 @@ describe('apiTestReqres', () => {
       //   productId = response.body.map((el) => el.id);
       //   console.log(productId);
 
-      //   actualCategory = response.body
+      //   actualId = response.body
       //     .filter((el) => el.category === 'coffee')
       //     .map((el) => el.id);
       //   console.log(actualCategory);
@@ -53,7 +55,7 @@ describe('apiTestReqres', () => {
   });
 
   category.forEach((category) => {
-    it.only(`Verify products have own property by category Parameters: ${category}`, () => {
+    it(`Verify products have own property by category Parameters: ${category}`, () => {
       cy.api({
         method: 'GET',
         url: `${Base_URL}/products`,
@@ -61,7 +63,7 @@ describe('apiTestReqres', () => {
           // Parameters based on the API documentation
           category, // Example category
           //results: 20, // Example number of results
-          //available: false, // Example availability
+          //available: true, // Example availability
         },
       }).then((response) => {
         expect(response.status).to.equal(200);
@@ -92,7 +94,7 @@ describe('apiTestReqres', () => {
         url: `${Base_URL}/products`,
         qs: {
           results, // Example number of results
-          available: true, // Example availability
+          //available: true, // Example availability
         },
         failOnStatusCode: false, // Ignore non-2xx status codes
       }).then((response) => {
@@ -121,7 +123,7 @@ describe('apiTestReqres', () => {
       url: `${Base_URL}/products`,
       qs: {
         category: 'eggs',
-        results: 21,
+        results: 20,
         available: true,
       },
     }).then((response) => {
@@ -142,5 +144,48 @@ describe('apiTestReqres', () => {
         expect(product.inStock).to.be.an('boolean');
       });
     });
+  });
+
+  it.only('Verify At list one available product exist', () => {
+    cy.api({
+      method: 'GET',
+      url: `${Base_URL}/products`,
+    }).then((response) => {
+      singleProduct = response.body.filter(
+        (el) => el.name === 'Ethical Bean Medium Dark Roast, Espresso'
+      )[0];
+      console.log(singleProduct);
+      expect(response.status).to.be.eql(200);
+      expect(singleProduct).to.be.an('object');
+      expect(singleProduct).to.haveOwnProperty('id');
+      expect(singleProduct.id).to.be.a('number');
+      expect(singleProduct).to.haveOwnProperty('category');
+      expect(singleProduct.category).to.be.a('string');
+      expect(singleProduct).to.haveOwnProperty(
+        'name',
+        'Ethical Bean Medium Dark Roast, Espresso'
+      );
+      expect(singleProduct.name).to.be.a('string');
+      expect(singleProduct).to.haveOwnProperty('inStock');
+      expect(singleProduct.inStock).to.be.an('boolean');
+
+      productId = response.body
+        .filter(
+          (el) => el.name === 'Starbucks Coffee Variety Pack, 100% Arabica'
+        )
+        .map((el) => el.id)
+        .join();
+      console.log(productId);
+    });
+  });
+
+  it('Verify single product by Id', () => {
+    cy.api({
+      method: 'GET',
+      url: `${Base_URL}/products`,
+      qs: {
+        'product-label': true,
+      },
+    }).then((response) => {});
   });
 });
