@@ -5,6 +5,7 @@ describe('apiTestReqres', () => {
   let singleProduct;
   let product;
   let productId;
+  let prodId;
   let actualCategory;
   let actualResults;
   let category = [
@@ -88,7 +89,7 @@ describe('apiTestReqres', () => {
   });
 
   results.forEach((results) => {
-    it(`Verify result of listed products in the page by Result Parameters: ${results}`, () => {
+    it.only(`Verify result of listed products in the page by Result Parameters: ${results}`, () => {
       cy.api({
         method: 'GET',
         url: `${Base_URL}/products`,
@@ -103,15 +104,22 @@ describe('apiTestReqres', () => {
         console.log(results);
 
         if (results >= 0 && results <= 20) {
-          expect(response.body).to.be.an('array');
           expect(response.status).to.equal(200);
+          expect(response.body).to.be.an('array');
           expect(results).to.deep.equal(actualResults);
         } else {
-          expect(response.body).to.be.an('object');
           expect(response.status).to.equal(400);
-          expect(response.body.error).to.include(
-            "Invalid value for query parameter 'results'."
-          );
+          expect(response.body).to.be.an('object');
+          if (results < 0) {
+            expect(response.body.error).to.eql(
+              "Invalid value for query parameter 'results'. Must be greater than 0."
+            );
+          }
+          if (results > 20) {
+            expect(response.body.error).to.eql(
+              "Invalid value for query parameter 'results'. Cannot be greater than 20."
+            );
+          }
         }
       });
     });
@@ -146,14 +154,14 @@ describe('apiTestReqres', () => {
     });
   });
 
-  it.only('Verify At list one available product exist', () => {
+  it('Verify At list one available product exist', () => {
     cy.api({
       method: 'GET',
       url: `${Base_URL}/products`,
     }).then((response) => {
-      singleProduct = response.body.filter(
+      singleProduct = response.body.find(
         (el) => el.name === 'Ethical Bean Medium Dark Roast, Espresso'
-      )[0];
+      );
       console.log(singleProduct);
       expect(response.status).to.be.eql(200);
       expect(singleProduct).to.be.an('object');
@@ -169,23 +177,32 @@ describe('apiTestReqres', () => {
       expect(singleProduct).to.haveOwnProperty('inStock');
       expect(singleProduct.inStock).to.be.an('boolean');
 
-      productId = response.body
-        .filter(
-          (el) => el.name === 'Starbucks Coffee Variety Pack, 100% Arabica'
-        )
-        .map((el) => el.id)
-        .join();
-      console.log(productId);
+      productId = singleProduct.id;
+      // console.log(productId);
     });
   });
 
-  it('Verify single product by Id', () => {
-    cy.api({
-      method: 'GET',
-      url: `${Base_URL}/products`,
-      qs: {
-        'product-label': true,
-      },
-    }).then((response) => {});
+  prodId = [productId, -1];
+  prodId.forEach((prodId) => {
+    it(`Verify single product by Id ${prodId}`, () => {
+      cy.api({
+        method: 'GET',
+        url: `${Base_URL}/products/${prodId}`,
+        qs: {
+          'product-label': true,
+        },
+        failOnStatusCode: false,
+      }).then((response) => {
+        if (prodId === productId) {
+          expect(response.status).to.equal(200);
+        } else {
+          expect(response.status).to.equal(404);
+          expect(response.body).to.be.an('object');
+          expect(response.body.error).to.include('No product with id -1.');
+        }
+
+        console.log(prodId);
+      });
+    });
   });
 });
