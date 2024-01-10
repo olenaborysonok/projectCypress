@@ -35,6 +35,7 @@ describe('apiTestReqres', () => {
   let token;
   let clientEmail = [randomClientEmail, 'olena@gmail.com'];
   let orderId;
+  let actualOrderId;
 
   it.skip('TC_00.01_Verify status "UP"', () => {
     cy.api({
@@ -472,8 +473,8 @@ describe('apiTestReqres', () => {
         Authorization: token,
       },
     }).then((response) => {
-      //let actualOrderId = response.body[0].id;
-      let actualOrderId = response.body.map((el) => el.id); //.toString();
+      //actualOrderId = response.body[0].id;
+      actualOrderId = response.body.map((el) => el.id); //.toString();
       console.log(actualOrderId);
       expect(response.status).to.be.eql(200);
       expect(response.body).to.be.an('array');
@@ -489,8 +490,8 @@ describe('apiTestReqres', () => {
         Authorization: token,
       },
     }).then((response) => {
-      //let actualOrderId = response.body[0].id;
-      let actualOrderId = response.body.map((el) => el.id); //.toString();
+      //actualOrderId = response.body[0].id;
+      actualOrderId = response.body.map((el) => el.id); //.toString();
       console.log(actualOrderId);
 
       expect(response.status).to.be.eql(200);
@@ -510,7 +511,7 @@ describe('apiTestReqres', () => {
         invoice: true,
       },
     }).then((response) => {
-      let actualOrderId = response.body.id;
+      actualOrderId = response.body.id;
       console.log(actualOrderId);
 
       expect(response.status).to.be.eql(200);
@@ -538,7 +539,29 @@ describe('apiTestReqres', () => {
     });
   });
 
-  it('TC_00.23_Verify delete an order', () => {
+  it('TC_00.23_Verify a single order after update', () => {
+    cy.api({
+      method: 'GET',
+      url: `${Base_URL}/orders/${orderId}`,
+      headers: {
+        Authorization: token,
+      },
+      qs: {
+        invoice: true,
+      },
+    }).then((response) => {
+      actualOrderId = response.body.id;
+      console.log(actualOrderId);
+
+      expect(response.status).to.be.eql(200);
+      expect(response.body).to.be.an('object');
+      expect(actualOrderId).to.be.eql(orderId);
+      expect(response.body.customerName).to.be.eql('Kate');
+      expect(response.body.comment).to.be.eql('my order');
+    });
+  });
+
+  it('TC_00.24_Verify delete an order', () => {
     cy.api({
       method: 'DELETE',
       url: `${Base_URL}/orders/${orderId}`,
@@ -551,7 +574,7 @@ describe('apiTestReqres', () => {
     });
   });
 
-  it('TC_00.24_Verify a single order after deletion', () => {
+  it('TC_00.25_Verify a single order after deletion', () => {
     cy.api({
       method: 'GET',
       url: `${Base_URL}/orders`,
