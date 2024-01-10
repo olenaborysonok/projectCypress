@@ -537,4 +537,34 @@ describe('apiTestReqres', () => {
       expect(response.body).to.be.undefined;
     });
   });
+
+  it('TC_00.23_Verify delete an order', () => {
+    cy.api({
+      method: 'DELETE',
+      url: `${Base_URL}/orders/${orderId}`,
+      headers: {
+        Authorization: token,
+      },
+    }).then((response) => {
+      expect(response.status).to.be.eql(204);
+      console.log(response.body);
+    });
+  });
+
+  it('TC_00.24_Verify a single order after deletion', () => {
+    cy.api({
+      method: 'GET',
+      url: `${Base_URL}/orders`,
+      headers: {
+        Authorization: token,
+      },
+      qs: {
+        invoice: true,
+      },
+    }).then((response) => {
+      expect(response.status).to.be.eql(200);
+      console.log(response.body.length);
+      expect(0).to.be.eql(response.body.length);
+    });
+  });
 });
