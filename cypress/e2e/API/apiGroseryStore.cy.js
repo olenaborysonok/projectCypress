@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-let productId;
+
 describe('apiTestReqres', () => {
   const Base_URL = 'https://simple-grocery-store-api.glitch.me';
   let singleProduct;
@@ -23,6 +23,18 @@ describe('apiTestReqres', () => {
   let item;
   let newItem;
   let itemQuantity;
+  let randomQuantity = (() => {
+    return Math.floor(Math.random() * 10) + 1; // Generates a random number between 1 and 10
+  })();
+
+  let clientName = 'Olena';
+  let randomClientEmail = (() => {
+    let randomString = Math.random().toString(36).substring(7);
+    return `user_${randomString}@example.com`;
+  })();
+  let token;
+  let clientEmail = [randomClientEmail, 'olena@gmail.com'];
+  let orderId;
 
   it.skip('TC_00.01_Verify status "UP"', () => {
     cy.api({
@@ -286,7 +298,7 @@ describe('apiTestReqres', () => {
     });
   });
 
-  it('TC_00.11_Verify cart items', () => {
+  it('TC_00.11_Verify cart items after item added to the carts', () => {
     cy.api({
       method: 'GET',
       url: `${Base_URL}/carts/${cartId}/items`,
@@ -316,16 +328,14 @@ describe('apiTestReqres', () => {
       method: 'PATCH',
       url: `${Base_URL}/carts/${cartId}/items/${itemId}`,
       body: {
-        quantity: (() => {
-          return Math.floor(Math.random() * 10) + 1; // Generates a random number between 1 and 10
-        })(),
+        quantity: randomQuantity,
       },
     }).then((response) => {
       expect(response.status).to.be.eql(204);
     });
   });
 
-  it('TC_00.13_Verify cart items', () => {
+  it('TC_00.13_Verify cart items after modifying information about an item in the cart ', () => {
     cy.api({
       method: 'GET',
       url: `${Base_URL}/carts/${cartId}/items`,
@@ -346,7 +356,7 @@ describe('apiTestReqres', () => {
     });
   });
 
-  it('TC_00.14_Verify replasing an item in the cart', () => {
+  it('TC_00.14_Verify replasing item in the cart', () => {
     cy.api({
       method: 'PUT',
       url: `${Base_URL}/carts/${cartId}/items/${itemId}`,
@@ -359,7 +369,7 @@ describe('apiTestReqres', () => {
     });
   });
 
-  it('TC_00.15_Verify cart items', () => {
+  it('TC_00.15_Verify cart items after replasing item in the cart', () => {
     cy.api({
       method: 'GET',
       url: `${Base_URL}/carts/${cartId}/items`,
@@ -377,6 +387,135 @@ describe('apiTestReqres', () => {
         expect(newItem).to.haveOwnProperty('quantity');
         expect(newItem.quantity).to.equal(9);
       });
+    });
+  });
+
+  it.skip('TC_00.16_Verify cart items is deleted', () => {
+    cy.api({
+      method: 'DELETE',
+      url: `${Base_URL}/carts/${cartId}/items/${itemId}`,
+    }).then((response) => {
+      expect(response.status).to.be.eql(204);
+    });
+  });
+
+  it.skip('TC_00.17_Verify cart items after item was deleted', () => {
+    cy.api({
+      method: 'GET',
+      url: `${Base_URL}/carts/${cartId}/items`,
+    }).then((response) => {
+      expect(response.status).to.be.eql(200);
+      console.log(response.body.length);
+      expect(0).to.be.eql(response.body.length);
+    });
+  });
+
+  clientEmail.forEach((clientEmail) => {
+    it(`TC_00.18_Verify Register a new API client Autorization using positive and negative clientEmail: ${clientEmail}`, () => {
+      cy.api({
+        method: 'POST',
+        url: `${Base_URL}/api-clients`,
+        headers: {},
+        body: {
+          clientName,
+          clientEmail: clientEmail,
+        },
+        failOnStatusCode: false,
+      }).then((response) => {
+        if (clientEmail === randomClientEmail) {
+          expect(response.status).to.be.eql(201);
+          expect(response.body).to.be.an('object');
+          expect(response.body).to.haveOwnProperty('accessToken');
+          expect(response.body.accessToken).to.be.a('string');
+          token = response.body.accessToken;
+        } else {
+          expect(response.status).to.equal(409);
+          expect(response.body).to.be.an('object');
+          expect(response.body.error).to.eql(
+            'API client already registered. Try a different email.'
+          );
+        }
+        console.log(token);
+        console.log(randomClientEmail);
+      });
+    });
+  });
+
+  it('TC_00.19_Verify Create a new order', () => {
+    cy.api({
+      method: 'POST',
+      url: `${Base_URL}/orders`,
+      headers: {
+        Authorization: token,
+      },
+      body: {
+        cartId,
+        customerName: clientName,
+      },
+    }).then((response) => {
+      orderId = response.body.orderId;
+      expect(response.status).to.be.eql(201);
+      expect(response.body).to.be.an('object');
+      expect(response.body).to.haveOwnProperty('created');
+      expect(response.body.created).to.be.true;
+      expect(response.body).to.haveOwnProperty('orderId');
+      expect(response.body.orderId).to.be.eql(orderId);
+      console.log(orderId);
+    });
+  });
+
+  it('TC_00.20_Verify all orders', () => {
+    cy.api({
+      method: 'GET',
+      url: `${Base_URL}/orders`,
+      headers: {
+        Authorization: token,
+      },
+    }).then((response) => {
+      //let actualOrderId = response.body[0].id;
+      let actualOrderId = response.body.map((el) => el.id); //.toString();
+      console.log(actualOrderId);
+      expect(response.status).to.be.eql(200);
+      expect(response.body).to.be.an('array');
+      expect(actualOrderId).to.be.eql([orderId]);
+    });
+  });
+
+  it('TC_00.20_Verify all orders', () => {
+    cy.api({
+      method: 'GET',
+      url: `${Base_URL}/orders`,
+      headers: {
+        Authorization: token,
+      },
+    }).then((response) => {
+      //let actualOrderId = response.body[0].id;
+      let actualOrderId = response.body.map((el) => el.id); //.toString();
+      console.log(actualOrderId);
+
+      expect(response.status).to.be.eql(200);
+      expect(response.body).to.be.an('array');
+      expect(actualOrderId).to.be.eql([orderId]);
+    });
+  });
+
+  it('TC_00.21_Verify single orders', () => {
+    cy.api({
+      method: 'GET',
+      url: `${Base_URL}/orders/${orderId}`,
+      headers: {
+        Authorization: token,
+      },
+      qs: {
+        invoice: true,
+      },
+    }).then((response) => {
+      let actualOrderId = response.body.id;
+      console.log(actualOrderId);
+
+      expect(response.status).to.be.eql(200);
+      expect(response.body).to.be.an('object');
+      expect(actualOrderId).to.be.eql(orderId);
     });
   });
 });
