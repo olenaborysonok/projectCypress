@@ -499,7 +499,7 @@ describe('apiTestReqres', () => {
     });
   });
 
-  it('TC_00.21_Verify single orders', () => {
+  it('TC_00.21_Verify a single order', () => {
     cy.api({
       method: 'GET',
       url: `${Base_URL}/orders/${orderId}`,
@@ -516,6 +516,25 @@ describe('apiTestReqres', () => {
       expect(response.status).to.be.eql(200);
       expect(response.body).to.be.an('object');
       expect(actualOrderId).to.be.eql(orderId);
+    });
+  });
+
+  it('TC_00.22_Verify update an order', () => {
+    cy.api({
+      method: 'PATCH',
+      url: `${Base_URL}/orders/${orderId}`,
+      headers: {
+        Authorization: token,
+      },
+      body: {
+        customerName: 'Kate',
+        comment: 'my order',
+      },
+    }).then((response) => {
+      console.log(response.body);
+
+      expect(response.status).to.be.eql(204);
+      expect(response.body).to.be.undefined;
     });
   });
 });
