@@ -1,6 +1,7 @@
 /// <reference types="cypress" />
+//github.com/vdespa/Postman-Complete-Guide-API-Testing/blob/main/simple-grocery-store-api.md#Products
 
-describe('apiTestReqres', () => {
+https: describe('apiTestReqres', () => {
   const Base_URL = 'https://simple-grocery-store-api.glitch.me';
   let singleProduct;
   let product;
